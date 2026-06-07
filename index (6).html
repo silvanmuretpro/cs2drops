@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CS2 Drops — Giveaways & Concours</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05070a;--bg2:#0c0f16;--bg3:#131720;--bg4:#1a1f2e;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#eef0f5;--text2:#7a8099;--text3:#40455a;
+  --accent:#e8ff47;--accent2:#b8cc20;--accent-dim:rgba(232,255,71,0.12);
+  --green:#2ddf82;--green-dim:rgba(45,223,130,0.12);
+  --red:#ff4060;--discord:#5865F2;
+  --r:14px;--r-sm:8px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;cursor:none}
+#cursor{position:fixed;width:12px;height:12px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .15s,height .15s;mix-blend-mode:difference}
+#cursor-ring{position:fixed;width:36px;height:36px;border:1px solid rgba(232,255,71,0.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .12s ease}
+nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:68px;background:rgba(5,7,10,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.logo{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:10px;letter-spacing:.06em}
+.logo svg{animation:spin-slow 8s linear infinite}
+@keyframes spin-slow{to{transform:rotate(360deg)}}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-link{font-size:14px;font-weight:600;color:var(--text2);text-decoration:none;padding:6px 14px;border-radius:var(--r-sm);transition:all .2s;letter-spacing:.04em}
+.nav-link:hover{color:var(--accent);background:var(--accent-dim)}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 20px;border-radius:var(--r-sm);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;cursor:none;border:none;transition:all .2s;letter-spacing:.04em;text-decoration:none}
+.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--text2)}
+.btn-outline:hover{border-color:rgba(255,255,255,.3);color:var(--text);transform:translateY(-1px)}
+.btn-accent{background:var(--accent);color:#05070a}
+.btn-accent:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(232,255,71,.3)}
+.btn-discord-login{background:var(--discord);color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;padding:9px 20px;border-radius:var(--r-sm);border:none;cursor:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px;letter-spacing:.04em}
+.btn-discord-login:hover{background:#4752c4;transform:translateY(-1px);box-shadow:0 6px 20px rgba(88,101,242,.4)}
+.user-menu{position:relative}
+.user-btn{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);padding:6px 14px;cursor:none;transition:all .2s;font-family:'Rajdhani',sans-serif}
+.user-btn:hover{border-color:var(--accent)}
+.user-avatar{width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid var(--discord)}
+.user-name{font-size:14px;font-weight:700;color:var(--text)}
+.user-dropdown{position:absolute;top:calc(100% + 8px);right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:8px;min-width:190px;display:none;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.user-dropdown.open{display:block}
+.dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-sm);font-size:14px;font-weight:600;color:var(--text2);cursor:none;transition:all .2s;text-decoration:none;width:100%;background:none;border:none;font-family:'Rajdhani',sans-serif;letter-spacing:.03em}
+.dropdown-item:hover{background:var(--bg3);color:var(--text)}
+.dropdown-item.danger:hover{color:var(--red)}
+.hero{position:relative;padding:80px 32px 60px;max-width:1000px;margin:0 auto;text-align:center;z-index:2}
+.hero-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);width:600px;height:400px;background:radial-gradient(ellipse,rgba(232,255,71,.07),transparent 70%);pointer-events:none;animation:pulse-glow 4s ease-in-out infinite}
+@keyframes pulse-glow{0%,100%{opacity:.6}50%{opacity:1}}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:5px 16px;border-radius:999px;border:1px solid rgba(232,255,71,.3);background:rgba(232,255,71,.06);color:var(--accent);font-size:12px;font-weight:700;margin-bottom:28px;letter-spacing:.08em;text-transform:uppercase}
+.badge-dot{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.hero h1{font-family:'Orbitron',sans-serif;font-size:clamp(36px,6vw,68px);font-weight:900;line-height:1.05;letter-spacing:-.01em;margin-bottom:20px}
+.hero h1 .accent{color:var(--accent);text-shadow:0 0 40px rgba(232,255,71,.4)}
+.hero p{font-size:17px;color:var(--text2);max-width:520px;margin:0 auto 36px;line-height:1.6}
+.hero-cta{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.ticker{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:10px 0;overflow:hidden;position:relative;z-index:2}
+.ticker-inner{display:flex;gap:48px;animation:ticker 30s linear infinite;white-space:nowrap}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ticker-item{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);display:flex;align-items:center;gap:10px}
+.ticker-item span{color:var(--accent)}
+.section{padding:48px 32px;max-width:1000px;margin:0 auto;position:relative;z-index:2}
+.section-eyebrow{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.section-title{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;letter-spacing:.02em;margin-bottom:28px}
+.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.cards-grid{grid-template-columns:1fr}}
+.giveaway-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px;position:relative;overflow:hidden;transition:border-color .3s,transform .3s,box-shadow .3s;cursor:none}
+.giveaway-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;transition:opacity .3s}
+.giveaway-card:hover{border-color:rgba(232,255,71,.25);transform:translateY(-4px);box-shadow:0 20px 40px rgba(0,0,0,.4)}
+.giveaway-card:hover::before{opacity:1}
+.card-rarity{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px}
+.card-name{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px}
+.card-price-info{font-size:13px;color:var(--text3)}
+.prize-pill{font-size:13px;font-weight:700;padding:5px 14px;border-radius:999px;background:var(--green-dim);color:var(--green);white-space:nowrap;border:1px solid rgba(45,223,130,.2)}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+.timer{display:flex;gap:8px;margin-bottom:16px}
+.t-box{flex:1;text-align:center;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 4px}
+.t-num{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:var(--text);display:block;font-variant-numeric:tabular-nums}
+.t-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.prog-header{display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:6px}
+.prog-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-bottom:14px}
+.prog-fill{height:100%;border-radius:2px;position:relative;overflow:hidden}
+.prog-fill::after{content:'';position:absolute;top:0;right:0;bottom:0;width:20px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4));animation:shimmer 2s infinite}
+@keyframes shimmer{0%{transform:translateX(-40px)}100%{transform:translateX(40px)}}
+.prog-fill.high{background:linear-gradient(90deg,var(--green),#5fff9f)}
+.prog-fill.mid{background:linear-gradient(90deg,var(--accent),#fff176)}
+.prog-fill.low{background:linear-gradient(90deg,#ff9340,#ffb347)}
+.card-bottom{display:flex;align-items:center;justify-content:space-between}
+.tickets-sold{font-size:13px;color:var(--text3)}
+.tickets-sold b{color:var(--text2)}
+.btn-buy{font-size:13px;font-weight:700;padding:9px 20px;border-radius:var(--r-sm);background:var(--accent);color:#05070a;border:none;cursor:none;transition:all .2s;letter-spacing:.04em}
+.btn-buy:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 20px rgba(232,255,71,.35)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.two-col{grid-template-columns:1fr}}
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px}
+.panel-eyebrow{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.panel-title{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:900;margin-bottom:20px;letter-spacing:.02em}
+.lb-row{display:flex;align-items:center;gap:12px;padding:10px 8px;border-bottom:1px solid var(--border);border-radius:var(--r-sm);transition:background .2s;cursor:default;margin:0 -8px}
+.lb-row:last-child{border-bottom:none}
+.lb-row:hover{background:var(--bg3)}
+.lb-rank{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;min-width:28px;text-align:center}
+.lb-avatar{width:28px;height:28px;border-radius:50%;background:var(--bg4);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:12px;overflow:hidden}
+.lb-avatar img{width:100%;height:100%;object-fit:cover}
+.lb-name{flex:1;font-size:14px;font-weight:600;color:var(--text)}
+.lb-bar{width:60px;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.lb-fill{height:100%;background:var(--accent);border-radius:2px}
+.lb-tickets{font-size:13px;color:var(--text2);font-weight:600}
+.hist-row{display:flex;align-items:center;justify-content:space-between;padding:10px 8px;border-bottom:1px solid var(--border);border-radius:var(--r-sm);transition:background .2s;cursor:default;margin:0 -8px}
+.hist-row:last-child{border-bottom:none}
+.hist-row:hover{background:var(--bg3)}
+.hist-winner{font-size:14px;font-weight:600;color:var(--text)}
+.hist-prize{font-size:12px;color:var(--text3);margin-top:2px}
+.hist-right{text-align:right}
+.hist-gain{font-size:13px;font-weight:700;color:var(--green)}
+.hist-date{font-size:12px;color:var(--text3)}
+/* DASHBOARD */
+.dashboard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:28px;margin-bottom:20px}
+.dash-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.dash-avatar{width:56px;height:56px;border-radius:50%;border:2px solid var(--discord)}
+.dash-info h3{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900}
+.dash-info .dash-discord{font-size:13px;color:var(--discord);margin-top:2px;font-weight:600}
+.dash-info .dash-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.dash-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.dash-stat{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:16px;text-align:center}
+.dash-stat-n{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:900;color:var(--accent)}
+.dash-stat-l{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+.dash-tickets-title{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+.ticket-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px}
+.ticket-item-name{font-size:14px;font-weight:600;color:var(--text)}
+.ticket-item-qty{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;color:var(--accent)}
+/* SPIN */
+.spin-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:28px;text-align:center}
+.wheel-wrap{position:relative;width:240px;height:240px;margin:24px auto}
+#wheel-canvas{border-radius:50%;border:3px solid var(--accent);box-shadow:0 0 30px rgba(232,255,71,.2)}
+.wheel-pointer{position:absolute;top:-16px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:20px solid var(--accent);filter:drop-shadow(0 0 6px rgba(232,255,71,.6))}
+.btn-spin{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:900;padding:14px 36px;border-radius:var(--r-sm);background:var(--accent);color:#05070a;border:none;cursor:none;transition:all .2s;letter-spacing:.06em;margin-top:20px}
+.btn-spin:hover:not(:disabled){background:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(232,255,71,.4)}
+.btn-spin:disabled{opacity:.4;cursor:not-allowed}
+.spin-info{font-size:13px;color:var(--text3);margin-top:10px}
+.spin-result{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--accent);margin-top:16px;min-height:28px}
+/* DISCORD BANNER */
+.discord-banner{background:linear-gradient(135deg,#1a1f3a,#0c0f16);border:1px solid rgba(88,101,242,.25);border-radius:var(--r);padding:32px;display:flex;align-items:center;justify-content:space-between;gap:24px;position:relative;overflow:hidden}
+.discord-banner::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(88,101,242,.15),transparent 70%);pointer-events:none}
+.discord-text h3{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--text);margin-bottom:6px}
+.discord-text p{font-size:14px;color:var(--text2);line-height:1.5}
+.btn-discord{background:var(--discord);color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;padding:13px 26px;border-radius:var(--r-sm);border:none;cursor:none;transition:all .2s;display:flex;align-items:center;gap:8px;white-space:nowrap;letter-spacing:.04em}
+.btn-discord:hover{background:#4752c4;transform:translateY(-2px);box-shadow:0 8px 24px rgba(88,101,242,.4)}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:500;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:18px;padding:32px;width:100%;max-width:420px;animation:modalIn .3s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+@keyframes modalIn{from{opacity:0;transform:scale(.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-close{position:absolute;top:16px;right:16px;background:var(--bg3);border:1px solid var(--border);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:none;color:var(--text2);font-size:16px;transition:all .2s}
+.modal-close:hover{color:var(--text);border-color:var(--border2)}
+.modal-eyebrow{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.modal h2{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;margin-bottom:4px}
+.modal-sub{font-size:14px;color:var(--text2);margin-bottom:26px}
+.qty-label{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.qty-row{display:flex;align-items:center;gap:0;margin-bottom:24px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden}
+.qty-btn{width:48px;height:48px;background:transparent;border:none;color:var(--text2);font-size:22px;cursor:none;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.qty-btn:hover{background:var(--bg4);color:var(--text)}
+.qty-num{flex:1;text-align:center;font-family:'Orbitron',sans-serif;font-size:28px;font-weight:900;color:var(--text);border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.modal-total{display:flex;justify-content:space-between;align-items:center;padding:18px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:22px}
+.modal-total .label{font-size:14px;color:var(--text2);font-weight:600}
+.total-amount{font-family:'Orbitron',sans-serif;font-size:30px;font-weight:900;color:var(--accent)}
+.btn-pay{width:100%;padding:16px;background:var(--accent);color:#05070a;border:none;border-radius:var(--r-sm);font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;cursor:none;transition:all .2s;letter-spacing:.06em}
+.btn-pay:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 10px 30px rgba(232,255,71,.4)}
+.btn-pay:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.pay-note{text-align:center;font-size:12px;color:var(--text3);margin-top:12px}
+/* NOTIFS */
+.notif-container{position:fixed;bottom:24px;left:24px;z-index:300;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.notif{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);padding:12px 16px;display:flex;align-items:center;gap:12px;font-size:13px;font-weight:600;transform:translateX(-120%);transition:transform .4s cubic-bezier(.34,1.56,.64,1);max-width:280px}
+.notif.show{transform:translateX(0)}
+.notif-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;animation:blink 1.4s infinite}
+.notif-dot.green{background:var(--green)}
+.notif-dot.accent{background:var(--accent)}
+.notif-dot.discord{background:var(--discord)}
+.toast{position:fixed;top:80px;right:24px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);padding:14px 20px;font-size:14px;font-weight:600;color:var(--text);z-index:600;transform:translateX(140%);transition:transform .4s cubic-bezier(.34,1.56,.64,1);max-width:300px}
+.toast.show{transform:translateX(0)}
+.toast.success{border-color:rgba(45,223,130,.3);color:var(--green)}
+.toast.error{border-color:rgba(255,64,96,.3);color:var(--red)}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<nav>
+  <a class="logo" href="#">
+    <svg viewBox="0 0 28 28" fill="none" width="26" height="26">
+      <circle cx="14" cy="14" r="12" stroke="#e8ff47" stroke-width="1.5" stroke-dasharray="4 2"/>
+      <circle cx="14" cy="14" r="6" stroke="#e8ff47" stroke-width="1.5"/>
+      <circle cx="14" cy="14" r="2" fill="#e8ff47"/>
+      <line x1="14" y1="2" x2="14" y2="6" stroke="#e8ff47" stroke-width="1.5"/>
+      <line x1="14" y1="22" x2="14" y2="26" stroke="#e8ff47" stroke-width="1.5"/>
+      <line x1="2" y1="14" x2="6" y2="14" stroke="#e8ff47" stroke-width="1.5"/>
+      <line x1="22" y1="14" x2="26" y2="14" stroke="#e8ff47" stroke-width="1.5"/>
+    </svg>
+    CS2 DROPS
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="#giveaways">CONCOURS</a>
+    <a class="nav-link" href="#roue">ROUE</a>
+    <a class="nav-link" href="#classement">CLASSEMENT</a>
+    <a class="nav-link" href="https://discord.gg/TON-LIEN" target="_blank">DISCORD</a>
+    <div id="nav-auth"></div>
+  </div>
+</nav>
+
+<div class="ticker">
+  <div class="ticker-inner" id="ticker-inner"></div>
+</div>
+
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-badge"><div class="badge-dot"></div> TIRAGES EN DIRECT SUR DISCORD</div>
+  <h1>GAGNE DES<br><span class="accent">SKINS CS2</span><br>LÉGENDAIRES</h1>
+  <p>La plateforme #1 de giveaways CS2 en France. Connecte-toi avec Discord, achète tes tickets et remporte des skins livrés directement sur Steam.</p>
+  <div class="hero-cta">
+    <a href="#giveaways" class="btn btn-accent" style="font-size:15px;padding:13px 30px">VOIR LES CONCOURS</a>
+    <button class="btn-discord-login" style="font-size:15px;padding:13px 24px" onclick="loginDiscord()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.033.057a19.957 19.957 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      CONNEXION DISCORD
+    </button>
+  </div>
+</section>
+
+<!-- DASHBOARD -->
+<section class="section" id="dashboard-section" style="display:none;padding-top:0">
+  <div class="section-eyebrow">MON ESPACE</div>
+  <div class="section-title">Tableau de bord</div>
+  <div class="dashboard">
+    <div class="dash-header">
+      <img id="dash-avatar" class="dash-avatar" src="" alt=""/>
+      <div class="dash-info">
+        <h3 id="dash-name">—</h3>
+        <div class="dash-discord" id="dash-discord">—</div>
+        <div class="dash-sub">Membre CS2 Drops</div>
+      </div>
+    </div>
+    <div class="dash-stats">
+      <div class="dash-stat">
+        <div class="dash-stat-n" id="dash-total">0</div>
+        <div class="dash-stat-l">Tickets achetés</div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-n" id="dash-free">0</div>
+        <div class="dash-stat-l">Tickets gratuits</div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-n" id="dash-total-all" style="color:var(--green)">0</div>
+        <div class="dash-stat-l">Total mes tickets</div>
+      </div>
+    </div>
+    <div class="dash-tickets-title">MES TICKETS POUR LE CONCOURS EN COURS</div>
+    <div id="dash-tickets-list"><p style="color:var(--text3);font-size:14px">Aucun ticket pour l'instant.</p></div>
+    <div class="dash-tickets-title" style="margin-top:16px">MES TICKETS GRATUITS (ROUE)</div>
+    <div id="dash-free-list"><p style="color:var(--text3);font-size:14px">Aucun ticket gratuit gagné pour l'instant.</p></div>
+  </div>
+</section>
+
+<!-- GIVEAWAYS -->
+<section class="section" id="giveaways">
+  <div class="section-eyebrow">EN COURS</div>
+  <div class="section-title">CONCOURS ACTIFS</div>
+  <div class="cards-grid" style="grid-template-columns:1fr">
+    <div class="giveaway-card reveal d1">
+      <div class="card-top">
+        <div><div class="card-rarity">⭐ COVERT — COUTEAU</div><div class="card-name">COUTEAU BOWIE | DOPPLER GAMMA</div><div class="card-price-info">Factory New · Phase 4 · 1 ticket = 1,50 €</div></div>
+        <span class="prize-pill">~200 €</span>
+      </div>
+      <div class="timer">
+        <div class="t-box"><span class="t-num" id="d1">07</span><span class="t-label">Jours</span></div>
+        <div class="t-box"><span class="t-num" id="h1">00</span><span class="t-label">Hrs</span></div>
+        <div class="t-box"><span class="t-num" id="m1">00</span><span class="t-label">Min</span></div>
+        <div class="t-box"><span class="t-num" id="s1">00</span><span class="t-label">Sec</span></div>
+      </div>
+      <div class="prog-header"><span>Tickets vendus</span><span>0 / 500</span></div>
+      <div class="prog-bar"><div class="prog-fill mid" style="width:0%"></div></div>
+      <div class="card-bottom">
+        <div class="tickets-sold"><b>500</b> tickets restants</div>
+        <button class="btn-buy" onclick="handleBuy('Couteau Bowie | Doppler Gamma','Factory New',1.50,'https://buy.stripe.com/bJedRac2WfGk0TDfIBgMw00')">ACHETER →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROUE -->
+<section class="section" id="roue" style="padding-top:0">
+  <div class="section-eyebrow">GRATUIT</div>
+  <div class="section-title">ROUE DE LA FORTUNE</div>
+  <div class="two-col">
+    <div class="spin-section">
+      <p style="font-size:14px;color:var(--text2)">1 tour gratuit par jour — Connecte-toi avec Discord pour jouer !</p>
+      <div class="wheel-wrap">
+        <div class="wheel-pointer"></div>
+        <canvas id="wheel-canvas" width="240" height="240"></canvas>
+      </div>
+      <button class="btn-spin" id="spin-btn" onclick="spinWheel()">TOURNER LA ROUE</button>
+      <div class="spin-info" id="spin-info">Connecte-toi pour jouer</div>
+      <div class="spin-result" id="spin-result"></div>
+    </div>
+    <div class="panel" style="display:flex;flex-direction:column;justify-content:center">
+      <div class="panel-eyebrow">GAINS POSSIBLES</div>
+      <div class="panel-title">Ce que tu peux gagner</div>
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:15px;font-weight:700">🎫 1 Ticket</div><div style="font-size:12px;color:var(--text3)">T'as de la chance !</div></div><div style="font-size:12px;font-weight:700;color:var(--accent)">12,5%</div></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0"><div><div style="font-size:15px;font-weight:700">😔 0 Ticket</div><div style="font-size:12px;color:var(--text3)">Réessaie demain</div></div><div style="font-size:12px;font-weight:700;color:var(--accent)">87,5%</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CLASSEMENT -->
+<section class="section" id="classement" style="padding-top:0">
+  <div class="two-col">
+    <div class="panel reveal">
+      <div class="panel-eyebrow">TOP JOUEURS</div>
+      <div class="panel-title">CLASSEMENT</div>
+      <div id="lb-list"></div>
+    </div>
+    <div class="panel reveal d1">
+      <div class="panel-eyebrow">DERNIERS TIRAGES</div>
+      <div class="panel-title">HISTORIQUE</div>
+      <div id="hist-list"></div>
+    </div>
+  </div>
+</section>
+
+<!-- DISCORD BANNER -->
+<div style="padding:0 32px 48px;max-width:1000px;margin:0 auto;position:relative;z-index:2">
+  <div class="discord-banner reveal">
+    <div class="discord-text">
+      <h3>REJOINS LA COMMUNAUTÉ</h3>
+      <p>Annonces de giveaways, tirages en direct, support et communauté CS2.</p>
+    </div>
+    <button class="btn-discord" onclick="window.open('https://discord.gg/TON-LIEN','_blank')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.033.057a19.957 19.957 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      REJOINDRE
+    </button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-eyebrow">ACHETER DES TICKETS</div>
+    <h2 id="modal-title">—</h2>
+    <div class="modal-sub" id="modal-sub">—</div>
+    <div class="qty-label">QUANTITÉ</div>
+    <div class="qty-row">
+      <button class="qty-btn" onclick="chQty(-5)">−5</button>
+      <button class="qty-btn" onclick="chQty(-1)" style="border-right:1px solid var(--border)">−</button>
+      <div class="qty-num" id="qty-display">1</div>
+      <button class="qty-btn" onclick="chQty(1)" style="border-left:1px solid var(--border)">+</button>
+      <button class="qty-btn" onclick="chQty(5)">+5</button>
+    </div>
+    <div class="modal-total">
+      <div class="label">TOTAL</div>
+      <div class="total-amount" id="modal-total">1,00 €</div>
+    </div>
+    <button class="btn-pay" id="pay-btn" onclick="doPay()">🔒 PAYER MAINTENANT</button>
+    <div class="pay-note">Sécurisé par Stripe · Skins livrés via Steam Trade</div>
+  </div>
+</div>
+
+<div class="notif-container" id="notifs"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ SUPABASE ══
+const SUPA_URL = 'https://tdcycmlevvhbttxysckn.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkY3ljbWxldnZoYnR0eHlzY2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3Nzc0ODEsImV4cCI6MjA5NjM1MzQ4MX0.Hy3uAXwtw5dPbKFgBuT0zNTdddrRRYbGLqcpF4a_O_E';
+const { createClient } = supabase;
+const db = createClient(SUPA_URL, SUPA_KEY);
+
+let currentUser = null;
+let qty = 1, price = 1.0, stripeLink = '', concours = '';
+
+// ══ DISCORD AUTH ══
+async function loginDiscord() {
+  const { error } = await db.auth.signInWithOAuth({
+    provider: 'discord',
+    options: { redirectTo: window.location.href }
+  });
+  if (error) showToast('Erreur de connexion', 'error');
+}
+
+async function logout() {
+  await db.auth.signOut();
+  currentUser = null;
+  renderAuthNav();
+  document.getElementById('dashboard-section').style.display = 'none';
+  document.getElementById('spin-btn').disabled = true;
+  document.getElementById('spin-info').textContent = 'Connecte-toi pour jouer';
+  showToast('Déconnecté', '');
+  closeDropdown();
+}
+
+async function initAuth() {
+  const { data: { session } } = await db.auth.getSession();
+  if (session?.user) {
+    currentUser = session.user;
+    renderAuthNav();
+    loadDashboard();
+    checkSpin();
+  } else {
+    renderAuthNav();
+  }
+  // Écouter les changements de session
+  db.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) {
+      currentUser = session.user;
+      // Sauvegarder dans notre table users
+      await db.from('users').upsert({
+        id: session.user.id,
+        steam_id: session.user.id,
+        steam_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'Joueur',
+        steam_avatar: session.user.user_metadata?.avatar_url || ''
+      }, { onConflict: 'id' });
+      renderAuthNav();
+      loadDashboard();
+      checkSpin();
+      showToast('✓ Connecté avec Discord !', 'success');
+    } else if (event === 'SIGNED_OUT') {
+      currentUser = null;
+      renderAuthNav();
+    }
+  });
+}
+
+function renderAuthNav() {
+  const nav = document.getElementById('nav-auth');
+  if (currentUser) {
+    const meta = currentUser.user_metadata || {};
+    const name = meta.full_name || meta.name || 'Joueur';
+    const avatar = meta.avatar_url || '';
+    nav.innerHTML = `
+      <div class="user-menu" id="user-menu">
+        <button class="user-btn" onclick="toggleDropdown()">
+          ${avatar ? `<img class="user-avatar" src="${avatar}" alt=""/>` : '🎮'}
+          <span class="user-name">${name}</span>
+          <span style="color:var(--text3)">▾</span>
+        </button>
+        <div class="user-dropdown" id="user-dropdown">
+          <a class="dropdown-item" href="#dashboard-section" onclick="closeDropdown()">📊 Mon tableau de bord</a>
+          <a class="dropdown-item" href="#roue" onclick="closeDropdown()">🎡 Roue de la fortune</a>
+          <div style="height:1px;background:var(--border);margin:6px 0"></div>
+          <button class="dropdown-item danger" onclick="logout()">🚪 Se déconnecter</button>
+        </div>
+      </div>`;
+  } else {
+    nav.innerHTML = `
+      <button class="btn-discord-login" onclick="loginDiscord()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.033.057a19.957 19.957 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+        DISCORD
+      </button>`;
+  }
+}
+
+function toggleDropdown() { document.getElementById('user-dropdown')?.classList.toggle('open'); }
+function closeDropdown() { document.getElementById('user-dropdown')?.classList.remove('open'); }
+document.addEventListener('click', e => { if (!e.target.closest('#user-menu')) closeDropdown(); });
+
+// ══ DASHBOARD ══
+async function loadDashboard() {
+  if (!currentUser) return;
+  document.getElementById('dashboard-section').style.display = 'block';
+  const meta = currentUser.user_metadata || {};
+  const name = meta.full_name || meta.name || 'Joueur';
+  const avatar = meta.avatar_url || '';
+  const discordTag = meta.preferred_username || meta.custom_claims?.global_name || name;
+  document.getElementById('dash-avatar').src = avatar;
+  document.getElementById('dash-name').textContent = name;
+  document.getElementById('dash-discord').textContent = '@' + discordTag;
+
+  // Tickets achetés
+  const { data: tickets } = await db.from('tickets')
+    .select('*').eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false });
+
+  const totalAchetes = tickets ? tickets.reduce((s,t) => s + t.quantity, 0) : 0;
+  document.getElementById('dash-total').textContent = totalAchetes;
+
+  const list = document.getElementById('dash-tickets-list');
+  if (!tickets || totalAchetes === 0) {
+    list.innerHTML = '<p style="color:var(--text3);font-size:14px">Aucun ticket acheté pour l\'instant.</p>';
+  } else {
+    const grouped = {};
+    tickets.forEach(t => { grouped[t.concours] = (grouped[t.concours] || 0) + t.quantity; });
+    list.innerHTML = Object.entries(grouped).map(([nom, qty]) => `
+      <div class="ticket-item">
+        <div>
+          <div class="ticket-item-name">🔪 ${nom}</div>
+          <div style="font-size:12px;color:var(--text3)">Concours en cours</div>
+        </div>
+        <div class="ticket-item-qty">${qty} 🎫</div>
+      </div>`).join('');
+  }
+
+  // Tickets gratuits (roue)
+  const { data: spins } = await db.from('spins')
+    .select('*').eq('user_id', currentUser.id)
+    .gt('tickets_gagnes', 0)
+    .order('created_at', { ascending: false });
+
+  const totalGratuits = spins ? spins.reduce((s,sp) => s + sp.tickets_gagnes, 0) : 0;
+  document.getElementById('dash-free').textContent = totalGratuits;
+  document.getElementById('dash-total-all').textContent = totalAchetes + totalGratuits;
+
+  const freeList = document.getElementById('dash-free-list');
+  if (!spins || spins.length === 0) {
+    freeList.innerHTML = '<p style="color:var(--text3);font-size:14px">Aucun ticket gratuit gagné pour l\'instant.</p>';
+  } else {
+    freeList.innerHTML = spins.map(sp => `
+      <div class="ticket-item">
+        <div>
+          <div class="ticket-item-name">🎡 Roue de la fortune</div>
+          <div style="font-size:12px;color:var(--text3)">${new Date(sp.created_at).toLocaleDateString('fr-FR')}</div>
+        </div>
+        <div class="ticket-item-qty" style="color:var(--green)">+${sp.tickets_gagnes} 🎫</div>
+      </div>`).join('');
+  }
+}
+
+// Recharger le dashboard au retour de Stripe
+if (document.referrer.includes('stripe.com') || document.referrer.includes('buy.stripe.com')) {
+  setTimeout(() => { if (currentUser) loadDashboard(); }, 1500);
+}
+window.addEventListener('focus', () => { if (currentUser) loadDashboard(); });
+
+// ══ ACHAT ══
+function handleBuy(name, wear, p, link) {
+  if (!currentUser) { showToast('Connecte-toi avec Discord d\'abord !', 'error'); return; }
+  qty=1; price=p; stripeLink=link; concours=name;
+  document.getElementById('modal-title').textContent = name;
+  document.getElementById('modal-sub').textContent = `${wear} · 1 ticket = ${p.toFixed(2).replace('.',',')} €`;
+  updateTotal();
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function chQty(d) { qty=Math.max(1,Math.min(100,qty+d)); document.getElementById('qty-display').textContent=qty; updateTotal(); }
+function updateTotal() { document.getElementById('modal-total').textContent=(qty*price).toFixed(2).replace('.',',')+' €'; }
+document.getElementById('modal').addEventListener('click', e => { if(e.target===document.getElementById('modal')) closeModal(); });
+
+async function doPay() {
+  const btn = document.getElementById('pay-btn');
+  btn.disabled=true; btn.textContent='⏳ Redirection…';
+  try {
+    await db.from('tickets').insert({ user_id: currentUser.id, concours, quantity: qty, stripe_session: 'pending' });
+  } catch(e) { console.error(e); }
+  await new Promise(r => setTimeout(r, 800));
+  closeModal(); btn.disabled=false; btn.textContent='🔒 PAYER MAINTENANT';
+  window.location.href = stripeLink;
+}
+
+// ══ ROUE ══
+const SEGMENTS = [
+  {label:'0 Ticket',tickets:0,color:'#0c0f16'},
+  {label:'0 Ticket',tickets:0,color:'#131720'},
+  {label:'0 Ticket',tickets:0,color:'#0c0f16'},
+  {label:'🎫 1 Ticket',tickets:1,color:'#1a3a1a'},
+  {label:'0 Ticket',tickets:0,color:'#0c0f16'},
+  {label:'0 Ticket',tickets:0,color:'#131720'},
+  {label:'0 Ticket',tickets:0,color:'#0c0f16'},
+  {label:'0 Ticket',tickets:0,color:'#131720'},
+];
+const canvas = document.getElementById('wheel-canvas');
+const ctx = canvas.getContext('2d');
+let wheelAngle=0, spinning=false;
+
+function drawWheel(angle) {
+  const cx=120,cy=120,r=115,seg=(2*Math.PI)/SEGMENTS.length;
+  ctx.clearRect(0,0,240,240);
+  SEGMENTS.forEach((s,i) => {
+    const start=angle+i*seg, end=start+seg;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,end); ctx.closePath();
+    ctx.fillStyle=s.color; ctx.fill();
+    ctx.strokeStyle='rgba(232,255,71,0.2)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(start+seg/2);
+    ctx.textAlign='right'; ctx.fillStyle='#e8ff47'; ctx.font='bold 12px Rajdhani';
+    ctx.fillText(s.label,r-10,5); ctx.restore();
+  });
+  ctx.beginPath(); ctx.arc(cx,cy,18,0,2*Math.PI); ctx.fillStyle='#e8ff47'; ctx.fill();
+  ctx.fillStyle='#05070a'; ctx.font='bold 9px Orbitron'; ctx.textAlign='center'; ctx.fillText('GO',cx,cy+4);
+}
+drawWheel(0);
+
+async function checkSpin() {
+  if (!currentUser) return;
+  // Vérifier d'abord dans localStorage (fonctionne même après refresh)
+  const key = 'last_spin_' + currentUser.id;
+  const localSpin = localStorage.getItem(key);
+  if (localSpin) {
+    const hours = (Date.now() - parseInt(localSpin)) / 3600000;
+    if (hours < 24) {
+      document.getElementById('spin-btn').disabled = true;
+      const h = Math.floor(24 - hours);
+      const m = Math.floor(((24 - hours) % 1) * 60);
+      document.getElementById('spin-info').textContent = `Prochain tour dans ${h}h ${m}min`;
+      // Mettre à jour le compte à rebours chaque minute
+      clearInterval(window.spinInterval);
+      window.spinInterval = setInterval(() => checkSpin(), 60000);
+      return;
+    }
+  }
+  // Vérifier aussi dans Supabase
+  const { data } = await db.from('spins')
+    .select('created_at')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (data?.created_at) {
+    const hours = (Date.now() - new Date(data.created_at)) / 3600000;
+    if (hours < 24) {
+      // Sauvegarder dans localStorage pour les prochains refreshs
+      localStorage.setItem(key, new Date(data.created_at).getTime().toString());
+      document.getElementById('spin-btn').disabled = true;
+      const h = Math.floor(24 - hours);
+      const m = Math.floor(((24 - hours) % 1) * 60);
+      document.getElementById('spin-info').textContent = `Prochain tour dans ${h}h ${m}min`;
+      clearInterval(window.spinInterval);
+      window.spinInterval = setInterval(() => checkSpin(), 60000);
+      return;
+    }
+  }
+  document.getElementById('spin-btn').disabled = false;
+  document.getElementById('spin-info').textContent = '🎡 1 tour gratuit disponible !';
+  clearInterval(window.spinInterval);
+}
+
+async function spinWheel() {
+  if (spinning) return;
+  if (!currentUser) { showToast('Connecte-toi avec Discord !', 'error'); return; }
+  spinning = true;
+  document.getElementById('spin-btn').disabled = true;
+  document.getElementById('spin-result').textContent = '';
+  // Choisir le segment gagnant AVANT l'animation
+  const winIndex = Math.floor(Math.random() * SEGMENTS.length);
+  const wonSegment = SEGMENTS[winIndex];
+  const seg = (2 * Math.PI) / SEGMENTS.length;
+  // Calculer l'angle final pour que le pointeur (en haut) pointe sur le bon segment
+  const extraSpins = 2 * Math.PI * 6; // 6 tours complets
+  const targetAngle = extraSpins + (2 * Math.PI - (winIndex * seg + seg / 2));
+  const dur = 4500, startTime = performance.now(), startAngle = wheelAngle % (2 * Math.PI);
+  function anim(now) {
+    const p = Math.min((now - startTime) / dur, 1);
+    const ease = 1 - Math.pow(1 - p, 4);
+    wheelAngle = startAngle + targetAngle * ease;
+    drawWheel(wheelAngle);
+    if (p < 1) requestAnimationFrame(anim);
+    else { spinning = false; finishSpin(wonSegment); }
+  }
+  requestAnimationFrame(anim);
+}
+
+async function finishSpin(won) {
+  document.getElementById('spin-result').textContent = won.tickets > 0
+    ? `🎉 Tu as gagné ${won.tickets} ticket${won.tickets > 1 ? 's' : ''} !`
+    : '😔 Pas de chance, réessaie demain !';
+  try {
+    const now = new Date().toISOString();
+    await db.from('spins').insert({ user_id: currentUser.id, tickets_gagnes: won.tickets });
+    // Sauvegarder dans localStorage pour persister après refresh
+    localStorage.setItem('last_spin_' + currentUser.id, Date.now().toString());
+    document.getElementById('spin-btn').disabled = true;
+    document.getElementById('spin-info').textContent = 'Prochain tour dans 24h';
+    if (won.tickets > 0) {
+      showToast(`🎫 +${won.tickets} ticket${won.tickets > 1 ? 's' : ''} gagné${won.tickets > 1 ? 's' : ''} !`, 'success');
+      loadDashboard();
+    }
+  } catch(e) { console.error(e); }
+}
+
+// ══ TIMER ══
+const pad=n=>String(n).padStart(2,'0');
+const end1=Date.now()+7*86400*1000;
+setInterval(()=>{
+  const diff=Math.max(0,Math.floor((end1-Date.now())/1000));
+  document.getElementById('d1').textContent=pad(Math.floor(diff/86400));
+  document.getElementById('h1').textContent=pad(Math.floor((diff%86400)/3600));
+  document.getElementById('m1').textContent=pad(Math.floor((diff%3600)/60));
+  document.getElementById('s1').textContent=pad(diff%60);
+},1000);
+
+const CONCOURS_NOM = 'Couteau Bowie | Doppler Gamma';
+
+// ══ LEADERBOARD RÉEL ══
+async function loadLeaderboard() {
+  const { data } = await db.from('tickets').select('user_id, quantity, users(steam_name)').eq('concours', CONCOURS_NOM);
+  const lb = document.getElementById('lb-list');
+  if (!data || data.length === 0) {
+    lb.innerHTML = '<p style="color:var(--text3);font-size:14px;text-align:center;padding:20px 0">Sois le premier à acheter un ticket ! 🎯</p>';
+    return;
+  }
+  const grouped = {};
+  data.forEach(t => {
+    const name = t.users?.steam_name || 'Joueur';
+    grouped[name] = (grouped[name] || 0) + t.quantity;
+  });
+  const sorted = Object.entries(grouped).sort((a,b) => b[1]-a[1]).slice(0,5);
+  const max = sorted[0]?.[1] || 1;
+  const medals = ['🥇','🥈','🥉','04','05'];
+  lb.innerHTML = sorted.map(([name,n],i) => `
+    <div class="lb-row">
+      <div class="lb-rank">${medals[i]||i+1}</div>
+      <div class="lb-avatar">🎮</div>
+      <div class="lb-name">${name}</div>
+      <div class="lb-bar"><div class="lb-fill" style="width:${Math.round(n/max*100)}%"></div></div>
+      <div class="lb-tickets">${n} 🎫</div>
+    </div>`).join('');
+}
+
+// ══ HISTORIQUE RÉEL ══
+async function loadHistory() {
+  const hist = document.getElementById('hist-list');
+  hist.innerHTML = '<p style="color:var(--text3);font-size:14px;text-align:center;padding:20px 0">🏆 Sois le premier gagnant de CS2 Drops !</p>';
+}
+
+// ══ TICKER RÉEL ══
+async function loadTicker() {
+  const inner = document.getElementById('ticker-inner');
+  const { data: ticketsData } = await db.from('tickets').select('quantity').eq('concours', CONCOURS_NOM);
+  const totalVendus = ticketsData ? ticketsData.reduce((s,t) => s+t.quantity, 0) : 0;
+  const restants = Math.max(0, 500 - totalVendus);
+  const TICKS = [
+    {t:'🔪 CONCOURS EN COURS', v:'Couteau Bowie Doppler Gamma Phase 4'},
+    {t:'🎫 Tickets vendus', v:`${totalVendus} / 500`},
+    {t:'⏳ Tickets restants', v:`${restants} disponibles`},
+    {t:'💰 1 ticket =', v:'1,50 €'},
+    {t:'🎡 Roue de la fortune', v:'1 tour gratuit / jour'},
+    {t:'🏆 Valeur du prix', v:'~200 €'},
+  ];
+  let tHTML = '';
+  for(let j=0;j<3;j++) TICKS.forEach(t => { tHTML += `<div class="ticker-item">${t.t} <span>${t.v}</span><span style="color:var(--border2);margin:0 12px">·</span></div>`; });
+  inner.innerHTML = tHTML;
+}
+
+// ══ NOTIFS RÉELLES (écoute Supabase en temps réel) ══
+function startRealtimeNotifs() {
+  db.channel('tickets-notifs')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tickets' }, async payload => {
+      const { data: user } = await db.from('users').select('steam_name').eq('id', payload.new.user_id).maybeSingle();
+      const name = user?.steam_name || 'Un joueur';
+      const qty = payload.new.quantity;
+      pushNotif(`${name} vient d'acheter ${qty} ticket${qty>1?'s':''} 🎫`, 'accent');
+      loadLeaderboard();
+      loadTicker();
+    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'spins' }, async payload => {
+      if (payload.new.tickets_gagnes > 0) {
+        const { data: user } = await db.from('users').select('steam_name').eq('id', payload.new.user_id).maybeSingle();
+        const name = user?.steam_name || 'Un joueur';
+        pushNotif(`${name} a gagné ${payload.new.tickets_gagnes} ticket${payload.new.tickets_gagnes>1?'s':''} sur la roue 🎡`, 'green');
+      }
+    })
+    .subscribe();
+}
+
+function pushNotif(txt, dot) {
+  const z = document.getElementById('notifs');
+  const el = document.createElement('div');
+  el.className = 'notif';
+  el.innerHTML = `<div class="notif-dot ${dot}"></div><div style="font-size:13px;font-weight:600">${txt}</div>`;
+  z.appendChild(el);
+  setTimeout(() => el.classList.add('show'), 30);
+  setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }, 4000);
+}
+
+// ══ CURSOR ══
+const cur=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+(function animR(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animR);})();
+document.querySelectorAll('button,a,.giveaway-card,.lb-row,.hist-row').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='18px';cur.style.height='18px';ring.style.width='52px';ring.style.height='52px';});
+  el.addEventListener('mouseleave',()=>{cur.style.width='12px';cur.style.height='12px';ring.style.width='36px';ring.style.height='36px';});
+});
+
+// ══ REVEAL ══
+const ro=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+// ══ TOAST ══
+function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
+
+// ══ INIT ══
+initAuth();
+loadLeaderboard();
+loadHistory();
+loadTicker();
+startRealtimeNotifs();
+</script>
+</body>
+</html>
