@@ -555,10 +555,11 @@ document.getElementById('modal').addEventListener('click', e => { if(e.target===
 async function doPay() {
   const btn = document.getElementById('pay-btn');
   btn.disabled=true; btn.textContent='⏳ Redirection…';
-  try {
-    await db.from('tickets').insert({ user_id: currentUser.id, concours, quantity: qty, stripe_session: 'pending' });
-  } catch(e) { console.error(e); }
-  await new Promise(r => setTimeout(r, 800));
+  // Sauvegarde userId et qty pour le webhook Stripe
+  localStorage.setItem('pending_user_id', currentUser.id);
+  localStorage.setItem('pending_concours', concours);
+  localStorage.setItem('pending_qty', qty);
+  await new Promise(r => setTimeout(r, 500));
   closeModal(); btn.disabled=false; btn.textContent='🔒 PAYER MAINTENANT';
   window.location.href = stripeLink;
 }
