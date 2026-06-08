@@ -727,6 +727,23 @@ async function loadHistory() {
   hist.innerHTML = '<p style="color:var(--text3);font-size:14px;text-align:center;padding:20px 0">🏆 Sois le premier gagnant de CS2 Drops !</p>';
 }
 
+// ══ TICKETS VENDUS (compteur + barre de progression) ══
+async function loadTicketsVendus() {
+  const { data } = await db.from('tickets').select('quantity').eq('concours', CONCOURS_NOM);
+  const total = data ? data.reduce((s,t) => s+t.quantity, 0) : 0;
+  const pct = Math.min(Math.round(total/500*100), 100);
+  const restants = Math.max(0, 500 - total);
+  // Mettre à jour le header de la barre
+  const progHeaders = document.querySelectorAll('.prog-header span');
+  if(progHeaders[1]) progHeaders[1].textContent = `${total} / 500`;
+  // Mettre à jour la barre de progression
+  const progFill = document.querySelector('.prog-fill');
+  if(progFill) progFill.style.width = pct+'%';
+  // Mettre à jour les tickets restants
+  const ticketsSold = document.querySelector('.tickets-sold b');
+  if(ticketsSold) ticketsSold.textContent = restants;
+}
+
 // ══ TICKER RÉEL ══
 async function loadTicker() {
   const inner = document.getElementById('ticker-inner');
@@ -748,7 +765,7 @@ async function loadTicker() {
 
 // ══ NOTIFS RÉELLES (écoute Supabase en temps réel) ══
 function startRealtimeNotifs() {
-  db.channel('tickets-notifs')
+  db.channel('tickets-realtime')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tickets' }, async payload => {
       const { data: user } = await db.from('users').select('steam_name').eq('id', payload.new.user_id).maybeSingle();
       const name = user?.steam_name || 'Un joueur';
@@ -800,6 +817,7 @@ initAuth();
 loadLeaderboard();
 loadHistory();
 loadTicker();
+loadTicketsVendus();
 startRealtimeNotifs();
 </script>
 </body>
