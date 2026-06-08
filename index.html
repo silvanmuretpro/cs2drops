@@ -649,10 +649,13 @@ async function spinWheel() {
   const winIndex = Math.floor(Math.random() * SEGMENTS.length);
   const wonSegment = SEGMENTS[winIndex];
   const seg = (2 * Math.PI) / SEGMENTS.length;
-  // Calculer l'angle final pour que le pointeur (en haut) pointe sur le bon segment
-  const extraSpins = 2 * Math.PI * 6; // 6 tours complets
-  const targetAngle = extraSpins + (2 * Math.PI - (winIndex * seg + seg / 2));
-  const dur = 4500, startTime = performance.now(), startAngle = wheelAngle % (2 * Math.PI);
+  // Le pointeur est en haut (angle -π/2)
+  // On calcule l'angle pour que le centre du segment gagnant soit sous le pointeur
+  const extraSpins = 2 * Math.PI * 6;
+  const currentAngleMod = wheelAngle % (2 * Math.PI);
+  const targetSegAngle = -Math.PI/2 - (winIndex * seg + seg/2);
+  const targetAngle = extraSpins + targetSegAngle - currentAngleMod;
+  const dur = 4500, startTime = performance.now(), startAngle = wheelAngle;
   function anim(now) {
     const p = Math.min((now - startTime) / dur, 1);
     const ease = 1 - Math.pow(1 - p, 4);
@@ -727,23 +730,6 @@ async function loadHistory() {
   hist.innerHTML = '<p style="color:var(--text3);font-size:14px;text-align:center;padding:20px 0">🏆 Sois le premier gagnant de CS2 Drops !</p>';
 }
 
-// ══ TICKETS VENDUS (compteur + barre de progression) ══
-async function loadTicketsVendus() {
-  const { data } = await db.from('tickets').select('quantity').eq('concours', CONCOURS_NOM);
-  const total = data ? data.reduce((s,t) => s+t.quantity, 0) : 0;
-  const pct = Math.min(Math.round(total/500*100), 100);
-  const restants = Math.max(0, 500 - total);
-  // Mettre à jour le header de la barre
-  const progHeaders = document.querySelectorAll('.prog-header span');
-  if(progHeaders[1]) progHeaders[1].textContent = `${total} / 500`;
-  // Mettre à jour la barre de progression
-  const progFill = document.querySelector('.prog-fill');
-  if(progFill) progFill.style.width = pct+'%';
-  // Mettre à jour les tickets restants
-  const ticketsSold = document.querySelector('.tickets-sold b');
-  if(ticketsSold) ticketsSold.textContent = restants;
-}
-
 // ══ TICKER RÉEL ══
 async function loadTicker() {
   const inner = document.getElementById('ticker-inner');
@@ -765,7 +751,7 @@ async function loadTicker() {
 
 // ══ NOTIFS RÉELLES (écoute Supabase en temps réel) ══
 function startRealtimeNotifs() {
-  db.channel('tickets-realtime')
+  db.channel('tickets-notifs')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tickets' }, async payload => {
       const { data: user } = await db.from('users').select('steam_name').eq('id', payload.new.user_id).maybeSingle();
       const name = user?.steam_name || 'Un joueur';
@@ -817,7 +803,6 @@ initAuth();
 loadLeaderboard();
 loadHistory();
 loadTicker();
-loadTicketsVendus();
 startRealtimeNotifs();
 </script>
 </body>
