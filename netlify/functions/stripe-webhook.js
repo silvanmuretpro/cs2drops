@@ -2,7 +2,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { createClient } = require('@supabase/supabase-js');
 
 const db = createClient(
-  process.env.SUPABASE_URL,
+  'https://tdcycmlevvhbttxysckn.supabase.co',
   process.env.SUPABASE_SERVICE_KEY
 );
 
@@ -26,12 +26,17 @@ exports.handler = async (event) => {
     const quantity = session.line_items?.data?.[0]?.quantity || 1;
 
     if (userId) {
-      await db.from('tickets').insert({
+      const { error } = await db.from('tickets').insert({
         user_id: userId,
         concours: 'Couteau Bowie | Doppler Gamma',
         quantity: quantity,
         stripe_session: session.id
       });
+      
+      if (error) {
+        console.error('Supabase error:', error);
+        return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
+      }
     }
   }
 
