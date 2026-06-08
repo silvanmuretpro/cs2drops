@@ -283,10 +283,10 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
         <div class="t-box"><span class="t-num" id="m1">00</span><span class="t-label">Min</span></div>
         <div class="t-box"><span class="t-num" id="s1">00</span><span class="t-label">Sec</span></div>
       </div>
-      <div class="prog-header"><span>Tickets vendus</span><span>0 / 500</span></div>
-      <div class="prog-bar"><div class="prog-fill mid" style="width:0%"></div></div>
+      <div class="prog-header"><span>Tickets vendus</span><span id="prog-count">0 / 500</span></div>
+      <div class="prog-bar"><div class="prog-fill mid" id="prog-fill" style="width:0%"></div></div>
       <div class="card-bottom">
-        <div class="tickets-sold"><b>500</b> tickets restants</div>
+        <div class="tickets-sold"><b id="tickets-restants">500</b> tickets restants</div>
         <button class="btn-buy" onclick="handleBuy('Couteau Bowie | Doppler Gamma','Factory New',1.50,'https://buy.stripe.com/bJedRac2WfGk0TDfIBgMw00')">ACHETER →</button>
       </div>
     </div>
@@ -730,6 +730,20 @@ async function loadHistory() {
   hist.innerHTML = '<p style="color:var(--text3);font-size:14px;text-align:center;padding:20px 0">🏆 Sois le premier gagnant de CS2 Drops !</p>';
 }
 
+// ══ TICKETS VENDUS (compteur + barre de progression) ══
+async function loadTicketsVendus() {
+  const { data } = await db.from('tickets').select('quantity').eq('concours', CONCOURS_NOM);
+  const total = data ? data.reduce((s,t) => s+t.quantity, 0) : 0;
+  const pct = Math.min(Math.round(total/500*100), 100);
+  const restants = Math.max(0, 500 - total);
+  const progCount = document.getElementById('prog-count');
+  if(progCount) progCount.textContent = `${total} / 500`;
+  const progFill = document.getElementById('prog-fill');
+  if(progFill) progFill.style.width = pct+'%';
+  const ticketsRestants = document.getElementById('tickets-restants');
+  if(ticketsRestants) ticketsRestants.textContent = restants;
+}
+
 // ══ TICKER RÉEL ══
 async function loadTicker() {
   const inner = document.getElementById('ticker-inner');
@@ -751,7 +765,7 @@ async function loadTicker() {
 
 // ══ NOTIFS RÉELLES (écoute Supabase en temps réel) ══
 function startRealtimeNotifs() {
-  db.channel('tickets-notifs')
+  db.channel('tickets-realtime')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tickets' }, async payload => {
       const { data: user } = await db.from('users').select('steam_name').eq('id', payload.new.user_id).maybeSingle();
       const name = user?.steam_name || 'Un joueur';
@@ -803,6 +817,7 @@ initAuth();
 loadLeaderboard();
 loadHistory();
 loadTicker();
+loadTicketsVendus();
 startRealtimeNotifs();
 </script>
 </body>
