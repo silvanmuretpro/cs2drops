@@ -700,28 +700,40 @@ const CONCOURS_NOM = 'Couteau Bowie | Doppler Gamma';
 
 // ══ LEADERBOARD RÉEL ══
 async function loadLeaderboard() {
-  const { data } = await db.from('tickets').select('user_id, quantity, users(steam_name)').eq('concours', CONCOURS_NOM);
   const lb = document.getElementById('lb-list');
-  if (!data || data.length === 0) {
+  // Récupérer les tickets
+  const { data: tickets } = await db.from('tickets').select('user_id, quantity').eq('concours', CONCOURS_NOM);
+  if (!tickets || tickets.length === 0) {
     lb.innerHTML = '<p style="color:var(--text3);font-size:14px;text-align:center;padding:20px 0">Sois le premier à acheter un ticket ! 🎯</p>';
     return;
   }
+  // Grouper par user_id
   const grouped = {};
-  data.forEach(t => {
-    const name = t.users?.steam_name || 'Joueur';
-    grouped[name] = (grouped[name] || 0) + t.quantity;
+  tickets.forEach(t => {
+    grouped[t.user_id] = (grouped[t.user_id] || 0) + t.quantity;
   });
+  // Récupérer les noms depuis la table users
+  const userIds = Object.keys(grouped);
+  const { data: users } = await db.from('users').select('id, steam_name, steam_avatar').in('id', userIds);
+  const userMap = {};
+  if (users) users.forEach(u => { userMap[u.id] = u; });
+  // Trier et afficher
   const sorted = Object.entries(grouped).sort((a,b) => b[1]-a[1]).slice(0,5);
   const max = sorted[0]?.[1] || 1;
   const medals = ['🥇','🥈','🥉','04','05'];
-  lb.innerHTML = sorted.map(([name,n],i) => `
+  lb.innerHTML = sorted.map(([uid,n],i) => {
+    const user = userMap[uid];
+    const name = user?.steam_name || 'Joueur';
+    const avatar = user?.steam_avatar || '';
+    return `
     <div class="lb-row">
       <div class="lb-rank">${medals[i]||i+1}</div>
-      <div class="lb-avatar">🎮</div>
+      <div class="lb-avatar">${avatar ? `<img src="${avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover"/>` : '🎮'}</div>
       <div class="lb-name">${name}</div>
       <div class="lb-bar"><div class="lb-fill" style="width:${Math.round(n/max*100)}%"></div></div>
       <div class="lb-tickets">${n} 🎫</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // ══ HISTORIQUE RÉEL ══
