@@ -187,6 +187,13 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+/* ══ FALLING SKINS ══ */
+.falling-skin{position:fixed;pointer-events:none;z-index:0;opacity:0;animation:skin-fall linear infinite;filter:drop-shadow(0 0 8px rgba(232,255,71,.15))}
+@keyframes skin-fall{0%{transform:translateY(-120px) rotate(0deg);opacity:0}5%{opacity:.18}90%{opacity:.12}100%{transform:translateY(110vh) rotate(360deg);opacity:0}}
+/* ══ PARTICLES ══ */
+#particles-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.particle{position:absolute;border-radius:50%;animation:rise linear infinite;opacity:0}
+@keyframes rise{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:.7}90%{opacity:.3}100%{transform:translateY(-10vh) scale(1.5);opacity:0}}
 </style>
 </head>
 <body>
@@ -825,12 +832,75 @@ document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
 
 // ══ INIT ══
+// ══ FALLING SKINS ══
+function createFallingSkins() {
+  const skinUrls = [
+    // AWP Dragon Lore
+    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17P7NdTRH-t26q4SZlvD7PYTQgXtu5Mx2gv2PrdSijAWwqkVtN272JIGdJw46YVrYqVO3xLy-gJC9u5vByCBh6ygi7WGdwUKTYdRD8A/512fx384f',
+    // AWP Asiimov
+    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfTzhB09-lnIWZluv0YuDRxHFd_sp-j7bQpd2mjFHh_UVtY2H3IYSUdFM5ZlnT_FK4xOy9hMa1vs4M0dg/512fx384f',
+    // AK-47 Fire Serpent
+    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09-vloWZh-L6YYxftm1u4f1iorjz27bx31GwrEpkMjD7I4OScgE3ZA6E_Vi3w-i5h5K4tJvXiCBh6yNMRSqWnQ/512fx384f',
+    // M4A4 Howl
+    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09-vloWZh8LbDLP2hxT5T09iui7qTp4mutBHk80BqZGn3LdKVJlU6NF_WqFTvxem8hpC1us_XiSBh6yIxjqWIvA/512fx384f',
+    // Karambit Fade
+    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpadgZW1faZh7P_BjJJ09uz2pKZhqb1a4LvWkFUpsYpij7j-o4n23lXlrBZpNT7cIKVJgBqNlrQ8gC4xLy6h5G9u5nJyiB3ufRVbvEU/512fx384f',
+    // Butterfly Fade
+    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLAJf1Od3eD9H5KiZlZO0mvbmMbfVqWZU7Mxkh9jB_Iv9nFfhqBNsZWqlcYLHcFQ4ZQmD-Fm9wu-n_Da9sPMnCBiuHZm5WSlV1pX0w/512fx384f',
+    // Desert Eagle Blaze
+    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposr-3LAAhjbndKJJ79tCBl4mVlvv0LejumWdD-8B1j7KRp5j3iFe1rhA_MW37YdSUd1c-YlHXqVO3ye26gpC7tZWal3Zn6CYis2GbIVXp1Xs/512fx384f',
+    // AK-47 Wild Lotus
+    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09-vloWZh8LbDLP2hxT5T09iui7qTp4mutBHk80BqZGn3LdKVJlU6NF_WqFTvxem8hpC1us_XiSBh6yIxjqWIvA/512fx384f',
+    // M9 Bayonet Doppler
+    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLAJfxeHNdQJO5du-gM7bwqb2MeuClTsCv8Ip2uj--IV9j1H1_RFpZj37dYKddVNoNFnYrwC5x-y6h5K4tJvXiCBh6yNMRSqWnQ/512fx384f',
+    // Glock Fade
+    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0Ob3djFN79eJmImMn-r6NrjummJW4NE_jieVpNj--oW1-BBiamr0I4WVd1RoYQyG_QDskLjxhZS4tZeaylg/512fx384f',
+  ];
+
+  for (let i = 0; i < 25; i++) {
+    const img = document.createElement('img');
+    img.className = 'falling-skin';
+    img.src = skinUrls[Math.floor(Math.random() * skinUrls.length)];
+    img.width = 80 + Math.floor(Math.random() * 70);
+    img.style.left = (Math.random() * 100) + 'vw';
+    img.style.animationDuration = (14 + Math.random() * 16) + 's';
+    img.style.animationDelay = -(Math.random() * 20) + 's';
+    img.onerror = () => { img.style.display = 'none'; };
+    document.body.appendChild(img);
+  }
+}
+createFallingSkins();
+
 initAuth();
 loadLeaderboard();
 loadHistory();
 loadTicker();
 loadTicketsVendus();
 startRealtimeNotifs();
+</script>
+<div id="particles-bg"></div>
+<script>
+// ══ PARTICLES ══
+(function(){
+  const container = document.getElementById("particles-bg");
+  const colors = ["#e8ff47","#ffffff","#2ddf82","#7b61ff","#ff6b35"];
+  for(let i = 0; i < 60; i++){
+    const p = document.createElement("div");
+    p.className = "particle";
+    const size = 2 + Math.random() * 4;
+    p.style.cssText = `
+      width:${size}px;
+      height:${size}px;
+      left:${Math.random()*100}vw;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration:${8+Math.random()*16}s;
+      animation-delay:-${Math.random()*20}s;
+      filter:blur(${Math.random()>0.7?"1px":"0px"});
+      box-shadow:0 0 ${size*2}px ${colors[Math.floor(Math.random()*colors.length)]};
+    `;
+    container.appendChild(p);
+  }
+})();
 </script>
 </body>
 </html>
