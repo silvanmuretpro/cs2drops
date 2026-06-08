@@ -756,6 +756,7 @@ function startRealtimeNotifs() {
       pushNotif(`${name} vient d'acheter ${qty} ticket${qty>1?'s':''} 🎫`, 'accent');
       loadLeaderboard();
       loadTicker();
+      loadTicketsVendus();
     })
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'spins' }, async payload => {
       if (payload.new.tickets_gagnes > 0) {
