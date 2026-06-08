@@ -22,14 +22,13 @@ exports.handler = async (event) => {
 
   if (stripeEvent.type === 'checkout.session.completed') {
     const session = stripeEvent.data.object;
-    const userId = session.metadata?.user_id;
-    const concours = session.metadata?.concours;
-    const quantity = parseInt(session.metadata?.quantity || '1');
+    const userId = session.client_reference_id;
+    const quantity = session.line_items?.data?.[0]?.quantity || 1;
 
-    if (userId && concours) {
+    if (userId) {
       await db.from('tickets').insert({
         user_id: userId,
-        concours: concours,
+        concours: 'Couteau Bowie | Doppler Gamma',
         quantity: quantity,
         stripe_session: session.id
       });
