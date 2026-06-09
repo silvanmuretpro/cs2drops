@@ -363,6 +363,20 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
     <div class="modal-eyebrow">ACHETER DES TICKETS</div>
     <h2 id="modal-title">—</h2>
     <div class="modal-sub" id="modal-sub">—</div>
+    <!-- TICKETS GRATUITS -->
+    <div id="free-tickets-banner" style="display:none;background:rgba(45,223,130,0.1);border:1px solid rgba(45,223,130,0.3);border-radius:var(--r-sm);padding:12px 16px;margin-bottom:20px;display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--green)">🎡 Tu as <span id="free-count">0</span> ticket(s) gratuit(s) !</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">Utilise-les pour réduire le total</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button onclick="chFree(-1)" style="width:28px;height:28px;border-radius:var(--r-sm);border:1px solid rgba(45,223,130,0.3);background:transparent;color:var(--green);font-size:16px;cursor:none;display:flex;align-items:center;justify-content:center">−</button>
+          <span id="free-used" style="font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:var(--green);min-width:20px;text-align:center">0</span>
+          <button onclick="chFree(1)" style="width:28px;height:28px;border-radius:var(--r-sm);border:1px solid rgba(45,223,130,0.3);background:transparent;color:var(--green);font-size:16px;cursor:none;display:flex;align-items:center;justify-content:center">+</button>
+        </div>
+      </div>
+    </div>
     <div class="qty-label">QUANTITÉ</div>
     <div class="qty-row">
       <button class="qty-btn" onclick="chQty(-5)">−5</button>
@@ -372,7 +386,10 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
       <button class="qty-btn" onclick="chQty(5)">+5</button>
     </div>
     <div class="modal-total">
-      <div class="label">TOTAL</div>
+      <div>
+        <div class="label">TOTAL</div>
+        <div id="free-discount-label" style="font-size:12px;color:var(--green);display:none">🎡 <span id="free-discount-txt"></span></div>
+      </div>
       <div class="total-amount" id="modal-total">1,00 €</div>
     </div>
     <button class="btn-pay" id="pay-btn" onclick="doPay()">🔒 PAYER MAINTENANT</button>
@@ -546,26 +563,102 @@ if (document.referrer.includes('stripe.com') || document.referrer.includes('buy.
 window.addEventListener('focus', () => { if (currentUser) loadDashboard(); });
 
 // ══ ACHAT ══
-function handleBuy(name, wear, p, link) {
+let freeTicketsAvailable = 0;
+let freeTicketsUsed = 0;
+
+async function handleBuy(name, wear, p, link) {
   if (!currentUser) { showToast('Connecte-toi avec Discord d\'abord !', 'error'); return; }
   qty=1; price=p; stripeLink=link; concours=name;
+  freeTicketsUsed = 0;
   document.getElementById('modal-title').textContent = name;
   document.getElementById('modal-sub').textContent = `${wear} · 1 ticket = ${p.toFixed(2).replace('.',',')} €`;
+
+  // Charger les tickets gratuits disponibles
+  const { data: spins } = await db.from('spins').select('tickets_gagnes').eq('user_id', currentUser.id);
+  const totalGagne = spins ? spins.reduce((s,sp) => s+sp.tickets_gagnes, 0) : 0;
+  // Tickets déjà utilisés
+  const { data: usedData } = await db.from('tickets').select('quantity').eq('user_id', currentUser.id).eq('concours', name).eq('stripe_session', 'free');
+  const totalUtilise = usedData ? usedData.reduce((s,t) => s+t.quantity, 0) : 0;
+  freeTicketsAvailable = Math.max(0, totalGagne - totalUtilise);
+
+  const banner = document.getElementById('free-tickets-banner');
+  if (freeTicketsAvailable > 0) {
+    banner.style.display = 'block';
+    document.getElementById('free-count').textContent = freeTicketsAvailable;
+    document.getElementById('free-used').textContent = 0;
+  } else {
+    banner.style.display = 'none';
+  }
+
   updateTotal();
   document.getElementById('modal').classList.add('open');
 }
-function closeModal() { document.getElementById('modal').classList.remove('open'); }
-function chQty(d) { qty=Math.max(1,Math.min(100,qty+d)); document.getElementById('qty-display').textContent=qty; updateTotal(); }
-function updateTotal() { document.getElementById('modal-total').textContent=(qty*price).toFixed(2).replace('.',',')+' €'; }
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  freeTicketsUsed = 0;
+}
+
+function chQty(d) {
+  qty=Math.max(1,Math.min(100,qty+d));
+  document.getElementById('qty-display').textContent=qty;
+  // Ajuster les tickets gratuits utilisés si nécessaire
+  if (freeTicketsUsed > qty) { freeTicketsUsed = qty; document.getElementById('free-used').textContent = freeTicketsUsed; }
+  updateTotal();
+}
+
+function chFree(d) {
+  const max = Math.min(freeTicketsAvailable, qty);
+  freeTicketsUsed = Math.max(0, Math.min(max, freeTicketsUsed + d));
+  document.getElementById('free-used').textContent = freeTicketsUsed;
+  updateTotal();
+}
+
+function updateTotal() {
+  const payQty = Math.max(0, qty - freeTicketsUsed);
+  const total = (payQty * price).toFixed(2).replace('.',',');
+  document.getElementById('modal-total').textContent = total + ' €';
+  const discLabel = document.getElementById('free-discount-label');
+  const discTxt = document.getElementById('free-discount-txt');
+  if (freeTicketsUsed > 0) {
+    discLabel.style.display = 'block';
+    discTxt.textContent = `${freeTicketsUsed} ticket${freeTicketsUsed>1?'s':''} gratuit${freeTicketsUsed>1?'s':''} appliqué${freeTicketsUsed>1?'s':''}`;
+  } else {
+    discLabel.style.display = 'none';
+  }
+}
+
 document.getElementById('modal').addEventListener('click', e => { if(e.target===document.getElementById('modal')) closeModal(); });
 
 async function doPay() {
   const btn = document.getElementById('pay-btn');
   btn.disabled=true; btn.textContent='⏳ Redirection…';
+
+  // Enregistrer les tickets gratuits utilisés dans Supabase
+  if (freeTicketsUsed > 0) {
+    await db.from('tickets').insert({
+      user_id: currentUser.id,
+      concours: concours,
+      quantity: freeTicketsUsed,
+      stripe_session: 'free'
+    });
+  }
+
+  const payQty = Math.max(0, qty - freeTicketsUsed);
+
+  if (payQty === 0) {
+    // Tout payé avec tickets gratuits
+    closeModal();
+    btn.disabled=false; btn.textContent='🔒 PAYER MAINTENANT';
+    showToast(`✓ ${freeTicketsUsed} ticket${freeTicketsUsed>1?'s':''} utilisé${freeTicketsUsed>1?'s':''}  !`, 'success');
+    loadDashboard();
+    loadTicketsVendus();
+    return;
+  }
+
   await new Promise(r => setTimeout(r, 500));
   closeModal();
-  btn.disabled=false;
-  btn.textContent='🔒 PAYER MAINTENANT';
+  btn.disabled=false; btn.textContent='🔒 PAYER MAINTENANT';
   const stripeUrl = `${stripeLink}?client_reference_id=${currentUser.id}&prefilled_email=${encodeURIComponent(currentUser.email || '')}`;
   window.location.href = stripeUrl;
 }
