@@ -187,9 +187,6 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-/* ══ FALLING SKINS ══ */
-.falling-skin{position:fixed;pointer-events:none;z-index:0;opacity:0;animation:skin-fall linear infinite;filter:drop-shadow(0 0 8px rgba(232,255,71,.15))}
-@keyframes skin-fall{0%{transform:translateY(-120px) rotate(0deg);opacity:0}5%{opacity:.18}90%{opacity:.12}100%{transform:translateY(110vh) rotate(360deg);opacity:0}}
 /* ══ PARTICLES ══ */
 #particles-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
 .particle{position:absolute;border-radius:50%;animation:rise linear infinite;opacity:0}
@@ -512,10 +509,8 @@ async function loadDashboard() {
     .select('*').eq('user_id', currentUser.id)
     .order('created_at', { ascending: false });
 
-  // Séparer tickets payés et tickets gratuits utilisés
   const ticketsPaies = tickets ? tickets.filter(t => t.stripe_session !== 'free') : [];
   const ticketsGratuitsUtilises = tickets ? tickets.filter(t => t.stripe_session === 'free') : [];
-
   const totalPaies = ticketsPaies.reduce((s,t) => s + t.quantity, 0);
   const totalGratuitsUtilises = ticketsGratuitsUtilises.reduce((s,t) => s + t.quantity, 0);
   const totalTous = totalPaies + totalGratuitsUtilises;
@@ -526,16 +521,15 @@ async function loadDashboard() {
   if (totalTous === 0) {
     list.innerHTML = '<p style="color:var(--text3);font-size:14px">Aucun ticket pour l\'instant.</p>';
   } else {
-    // Grouper tous les tickets par concours
     const grouped = {};
     tickets.forEach(t => { grouped[t.concours] = (grouped[t.concours] || 0) + t.quantity; });
-    list.innerHTML = Object.entries(grouped).map(([nom, qty]) => `
+    list.innerHTML = Object.entries(grouped).map(([nom, q]) => `
       <div class="ticket-item">
         <div>
           <div class="ticket-item-name">🔪 ${nom}</div>
           <div style="font-size:12px;color:var(--text3)">Concours en cours · dont ${ticketsGratuitsUtilises.filter(t=>t.concours===nom).reduce((s,t)=>s+t.quantity,0)} gratuit(s)</div>
         </div>
-        <div class="ticket-item-qty">${qty} 🎫</div>
+        <div class="ticket-item-qty">${q} 🎫</div>
       </div>`).join('');
   }
 
@@ -549,21 +543,6 @@ async function loadDashboard() {
   const gratuitsRestants = Math.max(0, totalGagnes - totalGratuitsUtilises);
   document.getElementById('dash-free').textContent = gratuitsRestants;
   document.getElementById('dash-total-all').textContent = totalTous;
-
-  const freeList = document.getElementById('dash-free-list');
-  if (!spins || spins.length === 0) {
-    freeList.innerHTML = '<p style="color:var(--text3);font-size:14px">Aucun ticket gratuit gagné pour l\'instant.</p>';
-  } else {
-    freeList.innerHTML = spins.map(sp => `
-      <div class="ticket-item">
-        <div>
-          <div class="ticket-item-name">🎡 Roue de la fortune</div>
-          <div style="font-size:12px;color:var(--text3)">${new Date(sp.created_at).toLocaleDateString('fr-FR')}</div>
-        </div>
-        <div class="ticket-item-qty" style="color:var(--green)">+${sp.tickets_gagnes} 🎫</div>
-      </div>`).join('');
-  }
-}
 
   const freeList = document.getElementById('dash-free-list');
   if (!spins || spins.length === 0) {
@@ -949,45 +928,6 @@ document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
 
 // ══ INIT ══
-// ══ FALLING SKINS ══
-function createFallingSkins() {
-  const skinUrls = [
-    // AWP Dragon Lore
-    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17P7NdTRH-t26q4SZlvD7PYTQgXtu5Mx2gv2PrdSijAWwqkVtN272JIGdJw46YVrYqVO3xLy-gJC9u5vByCBh6ygi7WGdwUKTYdRD8A/512fx384f',
-    // AWP Asiimov
-    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfTzhB09-lnIWZluv0YuDRxHFd_sp-j7bQpd2mjFHh_UVtY2H3IYSUdFM5ZlnT_FK4xOy9hMa1vs4M0dg/512fx384f',
-    // AK-47 Fire Serpent
-    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09-vloWZh-L6YYxftm1u4f1iorjz27bx31GwrEpkMjD7I4OScgE3ZA6E_Vi3w-i5h5K4tJvXiCBh6yNMRSqWnQ/512fx384f',
-    // M4A4 Howl
-    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09-vloWZh8LbDLP2hxT5T09iui7qTp4mutBHk80BqZGn3LdKVJlU6NF_WqFTvxem8hpC1us_XiSBh6yIxjqWIvA/512fx384f',
-    // Karambit Fade
-    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpadgZW1faZh7P_BjJJ09uz2pKZhqb1a4LvWkFUpsYpij7j-o4n23lXlrBZpNT7cIKVJgBqNlrQ8gC4xLy6h5G9u5nJyiB3ufRVbvEU/512fx384f',
-    // Butterfly Fade
-    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLAJf1Od3eD9H5KiZlZO0mvbmMbfVqWZU7Mxkh9jB_Iv9nFfhqBNsZWqlcYLHcFQ4ZQmD-Fm9wu-n_Da9sPMnCBiuHZm5WSlV1pX0w/512fx384f',
-    // Desert Eagle Blaze
-    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposr-3LAAhjbndKJJ79tCBl4mVlvv0LejumWdD-8B1j7KRp5j3iFe1rhA_MW37YdSUd1c-YlHXqVO3ye26gpC7tZWal3Zn6CYis2GbIVXp1Xs/512fx384f',
-    // AK-47 Wild Lotus
-    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09-vloWZh8LbDLP2hxT5T09iui7qTp4mutBHk80BqZGn3LdKVJlU6NF_WqFTvxem8hpC1us_XiSBh6yIxjqWIvA/512fx384f',
-    // M9 Bayonet Doppler
-    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLAJfxeHNdQJO5du-gM7bwqb2MeuClTsCv8Ip2uj--IV9j1H1_RFpZj37dYKddVNoNFnYrwC5x-y6h5K4tJvXiCBh6yNMRSqWnQ/512fx384f',
-    // Glock Fade
-    'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0Ob3djFN79eJmImMn-r6NrjummJW4NE_jieVpNj--oW1-BBiamr0I4WVd1RoYQyG_QDskLjxhZS4tZeaylg/512fx384f',
-  ];
-
-  for (let i = 0; i < 25; i++) {
-    const img = document.createElement('img');
-    img.className = 'falling-skin';
-    img.src = skinUrls[Math.floor(Math.random() * skinUrls.length)];
-    img.width = 80 + Math.floor(Math.random() * 70);
-    img.style.left = (Math.random() * 100) + 'vw';
-    img.style.animationDuration = (14 + Math.random() * 16) + 's';
-    img.style.animationDelay = -(Math.random() * 20) + 's';
-    img.onerror = () => { img.style.display = 'none'; };
-    document.body.appendChild(img);
-  }
-}
-createFallingSkins();
-
 initAuth();
 loadLeaderboard();
 loadHistory();
