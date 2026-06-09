@@ -507,39 +507,63 @@ async function loadDashboard() {
   document.getElementById('dash-name').textContent = name;
   document.getElementById('dash-discord').textContent = '@' + discordTag;
 
-  // Tickets achetés
+  // Tous les tickets
   const { data: tickets } = await db.from('tickets')
     .select('*').eq('user_id', currentUser.id)
     .order('created_at', { ascending: false });
 
-  const totalAchetes = tickets ? tickets.reduce((s,t) => s + t.quantity, 0) : 0;
-  document.getElementById('dash-total').textContent = totalAchetes;
+  // Séparer tickets payés et tickets gratuits utilisés
+  const ticketsPaies = tickets ? tickets.filter(t => t.stripe_session !== 'free') : [];
+  const ticketsGratuitsUtilises = tickets ? tickets.filter(t => t.stripe_session === 'free') : [];
+
+  const totalPaies = ticketsPaies.reduce((s,t) => s + t.quantity, 0);
+  const totalGratuitsUtilises = ticketsGratuitsUtilises.reduce((s,t) => s + t.quantity, 0);
+  const totalTous = totalPaies + totalGratuitsUtilises;
+
+  document.getElementById('dash-total').textContent = totalPaies;
 
   const list = document.getElementById('dash-tickets-list');
-  if (!tickets || totalAchetes === 0) {
-    list.innerHTML = '<p style="color:var(--text3);font-size:14px">Aucun ticket acheté pour l\'instant.</p>';
+  if (totalTous === 0) {
+    list.innerHTML = '<p style="color:var(--text3);font-size:14px">Aucun ticket pour l\'instant.</p>';
   } else {
+    // Grouper tous les tickets par concours
     const grouped = {};
     tickets.forEach(t => { grouped[t.concours] = (grouped[t.concours] || 0) + t.quantity; });
     list.innerHTML = Object.entries(grouped).map(([nom, qty]) => `
       <div class="ticket-item">
         <div>
           <div class="ticket-item-name">🔪 ${nom}</div>
-          <div style="font-size:12px;color:var(--text3)">Concours en cours</div>
+          <div style="font-size:12px;color:var(--text3)">Concours en cours · dont ${ticketsGratuitsUtilises.filter(t=>t.concours===nom).reduce((s,t)=>s+t.quantity,0)} gratuit(s)</div>
         </div>
         <div class="ticket-item-qty">${qty} 🎫</div>
       </div>`).join('');
   }
 
-  // Tickets gratuits (roue)
+  // Tickets gratuits gagnés (roue)
   const { data: spins } = await db.from('spins')
     .select('*').eq('user_id', currentUser.id)
     .gt('tickets_gagnes', 0)
     .order('created_at', { ascending: false });
 
-  const totalGratuits = spins ? spins.reduce((s,sp) => s + sp.tickets_gagnes, 0) : 0;
-  document.getElementById('dash-free').textContent = totalGratuits;
-  document.getElementById('dash-total-all').textContent = totalAchetes + totalGratuits;
+  const totalGagnes = spins ? spins.reduce((s,sp) => s + sp.tickets_gagnes, 0) : 0;
+  const gratuitsRestants = Math.max(0, totalGagnes - totalGratuitsUtilises);
+  document.getElementById('dash-free').textContent = gratuitsRestants;
+  document.getElementById('dash-total-all').textContent = totalTous;
+
+  const freeList = document.getElementById('dash-free-list');
+  if (!spins || spins.length === 0) {
+    freeList.innerHTML = '<p style="color:var(--text3);font-size:14px">Aucun ticket gratuit gagné pour l\'instant.</p>';
+  } else {
+    freeList.innerHTML = spins.map(sp => `
+      <div class="ticket-item">
+        <div>
+          <div class="ticket-item-name">🎡 Roue de la fortune</div>
+          <div style="font-size:12px;color:var(--text3)">${new Date(sp.created_at).toLocaleDateString('fr-FR')}</div>
+        </div>
+        <div class="ticket-item-qty" style="color:var(--green)">+${sp.tickets_gagnes} 🎫</div>
+      </div>`).join('');
+  }
+}
 
   const freeList = document.getElementById('dash-free-list');
   if (!spins || spins.length === 0) {
