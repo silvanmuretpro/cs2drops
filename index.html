@@ -790,14 +790,37 @@ async function finishSpin(won) {
 
 // ══ TIMER ══
 const pad=n=>String(n).padStart(2,'0');
-const end1=Date.now()+7*86400*1000;
-setInterval(()=>{
-  const diff=Math.max(0,Math.floor((end1-Date.now())/1000));
-  document.getElementById('d1').textContent=pad(Math.floor(diff/86400));
-  document.getElementById('h1').textContent=pad(Math.floor((diff%86400)/3600));
-  document.getElementById('m1').textContent=pad(Math.floor((diff%3600)/60));
-  document.getElementById('s1').textContent=pad(diff%60);
-},1000);
+let timerEnd = Date.now() + 7*86400*1000; // Valeur par défaut
+let timerInterval = null;
+
+function startTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    const diff = Math.max(0, Math.floor((timerEnd - Date.now()) / 1000));
+    document.getElementById('d1').textContent = pad(Math.floor(diff/86400));
+    document.getElementById('h1').textContent = pad(Math.floor((diff%86400)/3600));
+    document.getElementById('m1').textContent = pad(Math.floor((diff%3600)/60));
+    document.getElementById('s1').textContent = pad(diff%60);
+  }, 1000);
+}
+
+async function loadConcours() {
+  const { data } = await db.from('concours')
+    .select('*')
+    .eq('actif', true)
+    .limit(1)
+    .maybeSingle();
+  if (data?.date_fin) {
+    timerEnd = new Date(data.date_fin).getTime();
+    // Mettre à jour total tickets si différent
+    if (data.total_tickets) {
+      const progCount = document.getElementById('prog-count');
+      const ticketsRestants = document.getElementById('tickets-restants');
+      // On ne change que si loadTicketsVendus n'a pas encore chargé
+    }
+  }
+  startTimer();
+}
 
 const CONCOURS_NOM = 'Couteau Bowie | Doppler Gamma';
 
@@ -933,6 +956,7 @@ loadLeaderboard();
 loadHistory();
 loadTicker();
 loadTicketsVendus();
+loadConcours();
 startRealtimeNotifs();
 </script>
 <div id="particles-bg"></div>
