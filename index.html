@@ -990,5 +990,83 @@ startRealtimeNotifs();
   }
 })();
 </script>
+<!-- CGU PAGE (cachée par défaut) -->
+<div id="cgu-page" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:1000;overflow-y:auto;padding:40px 32px">
+  <div style="max-width:760px;margin:0 auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:40px">
+      <div class="logo" style="font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--accent);letter-spacing:.06em">CS2 DROPS</div>
+      <button onclick="document.getElementById('cgu-page').style.display='none'" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);padding:8px 16px;color:var(--text2);cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600">← Retour</button>
+    </div>
+    <h1 style="font-family:'Orbitron',sans-serif;font-size:28px;font-weight:900;color:var(--accent);margin-bottom:8px">CONDITIONS GÉNÉRALES D'UTILISATION</h1>
+    <p style="color:var(--text3);font-size:13px;margin-bottom:40px">Dernière mise à jour : juin 2026</p>
+
+    <div style="display:flex;flex-direction:column;gap:32px;color:var(--text2);font-size:15px;line-height:1.7">
+      
+      <div>
+        <h2 style="font-family:'Orbitron',sans-serif;font-size:16px;color:var(--text);margin-bottom:12px">1. PRÉSENTATION</h2>
+        <p>CS2 Drops est une plateforme de concours en ligne permettant aux participants d'acheter des tickets pour tenter de remporter des skins CS2. Le site est accessible à l'adresse <strong style="color:var(--accent)">cs2drops.fr</strong>.</p>
+      </div>
+
+      <div>
+        <h2 style="font-family:'Orbitron',sans-serif;font-size:16px;color:var(--text);margin-bottom:12px">2. FONCTIONNEMENT DES CONCOURS</h2>
+        <p>Chaque concours consiste en la vente d'un nombre limité de tickets. À l'expiration du délai ou à la vente complète des tickets, un tirage au sort est effectué en direct sur notre serveur Discord parmi tous les participants. Le gagnant reçoit le skin CS2 mis en jeu directement sur son compte Steam via Steam Trade.</p>
+      </div>
+
+      <div>
+        <h2 style="font-family:'Orbitron',sans-serif;font-size:16px;color:var(--text);margin-bottom:12px">3. CONDITIONS DE PARTICIPATION</h2>
+        <p>Pour participer, vous devez :</p>
+        <ul style="margin-top:8px;padding-left:20px;display:flex;flex-direction:column;gap:6px">
+          <li>Être âgé d'au moins 18 ans</li>
+          <li>Posséder un compte Discord valide</li>
+          <li>Posséder un compte Steam pour recevoir le skin en cas de victoire</li>
+          <li>Résider dans un pays où ce type de concours est légalement autorisé</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 style="font-family:'Orbitron',sans-serif;font-size:16px;color:var(--text);margin-bottom:12px">4. PAIEMENT</h2>
+        <p>Les paiements sont sécurisés et traités par <strong style="color:var(--text)">Stripe</strong>. CS2 Drops n'a accès à aucune donnée bancaire. Les achats de tickets sont définitifs et non remboursables sauf en cas d'annulation du concours par CS2 Drops.</p>
+      </div>
+
+      <div>
+        <h2 style="font-family:'Orbitron',sans-serif;font-size:16px;color:var(--text);margin-bottom:12px">5. ANNULATION D'UN CONCOURS</h2>
+        <p>CS2 Drops se réserve le droit d'annuler un concours en cas de force majeure ou de problème technique. En cas d'annulation, tous les participants seront remboursés intégralement du montant de leurs tickets.</p>
+      </div>
+
+      <div>
+        <h2 style="font-family:'Orbitron',sans-serif;font-size:16px;color:var(--text);margin-bottom:12px">6. ROUE DE LA FORTUNE</h2>
+        <p>La roue de la fortune permet d'obtenir des tickets gratuits une fois par jour. Ces tickets gratuits peuvent être utilisés pour participer aux concours. Ils n'ont aucune valeur monétaire et ne peuvent pas être échangés contre de l'argent.</p>
+      </div>
+
+      <div>
+        <h2 style="font-family:'Orbitron',sans-serif;font-size:16px;color:var(--text);margin-bottom:12px">7. DONNÉES PERSONNELLES</h2>
+        <p>CS2 Drops collecte uniquement les données nécessaires au fonctionnement du service : pseudo Discord, adresse email et identifiant Steam. Ces données ne sont pas vendues à des tiers. Conformément au RGPD, vous pouvez demander la suppression de vos données en contactant notre équipe sur Discord.</p>
+      </div>
+
+      <div>
+        <h2 style="font-family:'Orbitron',sans-serif;font-size:16px;color:var(--text);margin-bottom:12px">8. RESPONSABILITÉ</h2>
+        <p>CS2 Drops ne peut être tenu responsable des interruptions de service dues à des facteurs externes (pannes serveur, problèmes Steam, etc.). Le site est fourni "tel quel" sans garantie de disponibilité continue.</p>
+      </div>
+
+      <div>
+        <h2 style="font-family:'Orbitron',sans-serif;font-size:16px;color:var(--text);margin-bottom:12px">9. CONTACT</h2>
+        <p>Pour toute question, contactez-nous via notre serveur Discord ou par email. Nous nous engageons à répondre dans les 48h ouvrées.</p>
+      </div>
+
+    </div>
+
+    <div style="margin-top:48px;padding-top:24px;border-top:1px solid var(--border);text-align:center;color:var(--text3);font-size:13px">
+      © 2026 CS2 Drops — Tous droits réservés
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer style="text-align:center;padding:24px 32px;border-top:1px solid var(--border);color:var(--text3);font-size:13px;position:relative;z-index:2">
+  © 2026 CS2 Drops — 
+  <button onclick="document.getElementById('cgu-page').style.display='block';window.scrollTo(0,0)" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:13px;font-family:'Rajdhani',sans-serif;text-decoration:underline">Conditions Générales d'Utilisation</button>
+   · Paiements sécurisés par Stripe · Jeu réservé aux +18 ans
+</footer>
+
 </body>
 </html>
